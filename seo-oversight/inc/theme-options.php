@@ -25,6 +25,10 @@ class SEO_OVERSIGHT_Theme_Options {
 
     public static function get_options() {
         $defaults = array(
+            'primary_navy' => '#10233F',
+            'secondary_blue' => '#2457A7',
+            'accent_cyan' => '#21B8C7',
+            'font_family' => 'Vazirmatn',
             'announcement_active' => 1,
             'announcement_text' => 'سامانه پایش و ارزیابی بی‌پرفورمنس و مستقل سئو ویژه کسب‌وکارهای ایرانی',
             'announcement_link' => '/consultation/',
@@ -53,7 +57,22 @@ class SEO_OVERSIGHT_Theme_Options {
                 settings_fields( 'seo_oversight_theme_options_group' );
                 ?>
 
-                <h2>۱. بنر اطلاعیه بالای سایت (Announcement Bar)</h2>
+                <h2>۱. پالت رنگی و تایپوگرافی (Appearance & Design Tokens)</h2>
+                <p><label><strong>رنگ سرمه‌ای اصلی (Primary Navy):</strong></label><br>
+                <input type="color" name="seo_oversight_theme_options[primary_navy]" value="<?php echo esc_attr( $options['primary_navy'] ); ?>"></p>
+                <p><label><strong>رنگ آبی ثانویه (Secondary Blue):</strong></label><br>
+                <input type="color" name="seo_oversight_theme_options[secondary_blue]" value="<?php echo esc_attr( $options['secondary_blue'] ); ?>"></p>
+                <p><label><strong>رنگ آکسان فیروزه‌ای (Accent Cyan):</strong></label><br>
+                <input type="color" name="seo_oversight_theme_options[accent_cyan]" value="<?php echo esc_attr( $options['accent_cyan'] ); ?>"></p>
+                <p><label><strong>فونت اصلی سایت:</strong></label><br>
+                <select name="seo_oversight_theme_options[font_family]">
+                    <option value="Vazirmatn" <?php selected( $options['font_family'], 'Vazirmatn' ); ?>>وزیرمتن (Vazirmatn) - پیش‌فرض رسمی</option>
+                    <option value="IRANSans" <?php selected( $options['font_family'], 'IRANSans' ); ?>>ایران‌سنس (IRANSans)</option>
+                    <option value="Yekan Bakh" <?php selected( $options['font_family'], 'Yekan Bakh' ); ?>>یکان بخ (Yekan Bakh)</option>
+                </select></p>
+
+                <hr>
+                <h2>۲. بنر اطلاعیه بالای سایت (Announcement Bar)</h2>
                 <p><label><input type="checkbox" name="seo_oversight_theme_options[announcement_active]" value="1" <?php checked( $options['announcement_active'], 1 ); ?>> بنر بالای هدر فعال باشد</label></p>
                 <p><label><strong>متن بنر:</strong></label><br>
                 <input type="text" name="seo_oversight_theme_options[announcement_text]" value="<?php echo esc_attr( $options['announcement_text'] ); ?>" style="width:100%;"></p>

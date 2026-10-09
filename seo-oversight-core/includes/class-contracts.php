@@ -48,24 +48,25 @@ class SEO_OVERSIGHT_Contracts {
         }
 
         $user_id = get_current_user_id();
-        if ( ! $user_id && ! empty( $client_email ) ) {
-            $user = get_user_by( 'email', $client_email );
-            if ( $user ) {
-                $user_id = $user->ID;
-            }
-        }
 
-        // If user still not found and email provided, create a user account for client
         if ( ! $user_id && ! empty( $client_email ) ) {
-            $username = 'user_' . sanitize_title( $client_mobile );
-            $random_pass = wp_generate_password( 12, true );
-            $created_user_id = wp_create_user( $username, $random_pass, $client_email );
-            if ( ! is_wp_error( $created_user_id ) ) {
-                $user_id = $created_user_id;
-                $user_obj = new WP_User( $user_id );
-                $user_obj->set_role( 'seo_client' );
-                update_user_meta( $user_id, 'display_name', $client_name );
-                update_user_meta( $user_id, 'billing_phone', $client_mobile );
+            $existing_user = get_user_by( 'email', $client_email );
+            if ( $existing_user ) {
+                $user_id = $existing_user->ID;
+            } else {
+                $username = 'client_' . sanitize_title( $client_mobile );
+                if ( username_exists( $username ) ) {
+                    $username .= '_' . wp_generate_password( 4, false, false );
+                }
+                $random_pass = wp_generate_password( 12, true );
+                $created_user_id = wp_create_user( $username, $random_pass, $client_email );
+                if ( ! is_wp_error( $created_user_id ) ) {
+                    $user_id = $created_user_id;
+                    $user_obj = new WP_User( $user_id );
+                    $user_obj->set_role( 'seo_client' );
+                    update_user_meta( $user_id, 'display_name', $client_name );
+                    update_user_meta( $user_id, 'billing_phone', $client_mobile );
+                }
             }
         }
 

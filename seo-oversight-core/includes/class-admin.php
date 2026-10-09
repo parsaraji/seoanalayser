@@ -10,6 +10,7 @@ class SEO_OVERSIGHT_Admin {
         add_action( 'admin_post_seo_admin_update_consultation', array( __CLASS__, 'handle_update_consultation' ) );
         add_action( 'admin_post_seo_admin_update_assessment', array( __CLASS__, 'handle_update_assessment' ) );
         add_action( 'admin_post_seo_admin_verify_payment', array( __CLASS__, 'handle_verify_payment' ) );
+        add_action( 'admin_post_seo_admin_update_contract', array( __CLASS__, 'handle_update_contract' ) );
         add_action( 'admin_post_seo_admin_save_report', array( __CLASS__, 'handle_save_report' ) );
         add_action( 'admin_post_seo_admin_save_payment_settings', array( __CLASS__, 'handle_save_payment_settings' ) );
     }
@@ -356,10 +357,43 @@ class SEO_OVERSIGHT_Admin {
         $table = $wpdb->prefix . 'seo_contracts';
         $contracts = $wpdb->get_results( "SELECT * FROM $table ORDER BY id DESC" );
 
+        $edit_id = absint( $_GET['edit'] ?? 0 );
+        $edit_contract = $edit_id ? SEO_OVERSIGHT_Contracts::get_contract( $edit_id ) : null;
+
         ?>
         <div class="wrap" dir="rtl">
-            <h1>مدیریت قراردادهای نظارت سئو</h1>
+            <h1>مدیریت و ویرایش قراردادهای نظارت سئو</h1>
             <hr>
+
+            <?php if ( $edit_contract ) : ?>
+                <div style="background:#fff; border:1px solid #ccc; padding:20px; margin-bottom:30px;">
+                    <h3>ویرایش و انتشار نسخه جدید قرارداد شماره: <?php echo esc_html( $edit_contract->contract_number ); ?></h3>
+                    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+                        <input type="hidden" name="action" value="seo_admin_update_contract">
+                        <input type="hidden" name="contract_id" value="<?php echo esc_attr( $edit_contract->id ); ?>">
+                        <?php wp_nonce_field( 'seo_admin_update_contract_action', 'seo_admin_ctr_nonce' ); ?>
+
+                        <p><label><strong>تغییر وضعیت قرارداد:</strong></label><br>
+                        <select name="status">
+                            <option value="draft" <?php selected( $edit_contract->status, 'draft' ); ?>>پیش‌نویس</option>
+                            <option value="submitted" <?php selected( $edit_contract->status, 'submitted' ); ?>>ثبت‌شده</option>
+                            <option value="under_review" <?php selected( $edit_contract->status, 'under_review' ); ?>>در حال بررسی ناظر</option>
+                            <option value="awaiting_payment" <?php selected( $edit_contract->status, 'awaiting_payment' ); ?>>در انتظار پرداخت</option>
+                            <option value="active" <?php selected( $edit_contract->status, 'active' ); ?>>فعال</option>
+                            <option value="suspended" <?php selected( $edit_contract->status, 'suspended' ); ?>>معلق</option>
+                            <option value="completed" <?php selected( $edit_contract->status, 'completed' ); ?>>تکمیل شده</option>
+                            <option value="cancelled" <?php selected( $edit_contract->status, 'cancelled' ); ?>>لغو شده</option>
+                        </select></p>
+
+                        <p><label><strong>مبلغ ماهانه (تومان):</strong></label><br>
+                        <input type="number" name="monthly_fee_toman" value="<?php echo esc_attr( $edit_contract->monthly_fee_toman ); ?>" style="width:100%;"></p>
+
+                        <button type="submit" class="button button-primary">ذخیره تغییرات قرارداد</button>
+                        <a href="<?php echo esc_url( admin_url( 'admin.php?page=seo-oversight-contracts' ) ); ?>" class="button">انصراف</a>
+                    </form>
+                </div>
+            <?php endif; ?>
+
             <table class="widefat fixed striped">
                 <thead>
                     <tr>
@@ -369,6 +403,7 @@ class SEO_OVERSIGHT_Admin {
                         <th>مبلغ ماهانه</th>
                         <th>تاریخ ثبت</th>
                         <th>وضعیت</th>
+                        <th>عملیات</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -380,12 +415,39 @@ class SEO_OVERSIGHT_Admin {
                             <td><?php echo number_format( $c->monthly_fee_toman ); ?> تومان</td>
                             <td><?php echo esc_html( $c->created_at ); ?></td>
                             <td><strong><?php echo esc_html( SEO_OVERSIGHT_Dashboard::get_status_label( $c->status ) ); ?></strong></td>
+                            <td>
+                                <a href="<?php echo esc_url( admin_url( 'admin.php?page=seo-oversight-contracts&edit=' . $c->id ) ); ?>" class="button button-small">مدیریت</a>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
         <?php
+    }
+
+    public static function handle_update_contract() {
+        if ( ! current_user_can( 'manage_seo_contracts' ) || ! wp_verify_nonce( $_POST['seo_admin_ctr_nonce'], 'seo_admin_update_contract_action' ) ) {
+            wp_die( 'عدم دسترسی' );
+        }
+
+        $contract_id = absint( $_POST['contract_id'] );
+        $status = sanitize_text_field( $_POST['status'] );
+        $fee = absint( $_POST['monthly_fee_toman'] );
+
+        global $wpdb;
+        $table = $wpdb->prefix . 'seo_contracts';
+        $wpdb->update(
+            $table,
+            array(
+                'status' => $status,
+                'monthly_fee_toman' => $fee
+            ),
+            array( 'id' => $contract_id )
+        );
+
+        wp_safe_redirect( admin_url( 'admin.php?page=seo-oversight-contracts' ) );
+        exit;
     }
 
     public static function page_payments() {
@@ -539,6 +601,13 @@ class SEO_OVERSIGHT_Admin {
         $file_url = '';
 
         if ( ! empty( $_FILES['report_file']['name'] ) ) {
+            $file_type = wp_check_filetype( basename( $_FILES['report_file']['name'] ) );
+            $ext = strtolower( $file_type['ext'] );
+
+            if ( 'pdf' !== $ext ) {
+                wp_die( 'تنها فایل‌های با پسوند PDF جهت پیوست گزارش مجاز می‌باشند.', 'خطای فرمت فایل', array( 'response' => 400 ) );
+            }
+
             $upload_dir = wp_upload_dir();
             $seo_rep_path = $upload_dir['basedir'] . '/seo_private_reports';
             $seo_rep_url = $upload_dir['baseurl'] . '/seo_private_reports';
@@ -548,8 +617,7 @@ class SEO_OVERSIGHT_Admin {
                 file_put_contents( $seo_rep_path . '/.htaccess', "Options -Indexes\n<Files *>\n  SetHandler default-handler\n</Files>" );
             }
 
-            $ext = pathinfo( $_FILES['report_file']['name'], PATHINFO_EXTENSION );
-            $filename = 'report_' . date('Ymd_His') . '_' . wp_generate_password(6, false, false) . '.' . $ext;
+            $filename = 'report_' . date('Ymd_His') . '_' . wp_generate_password(8, false, false) . '.pdf';
             $dest = $seo_rep_path . '/' . $filename;
 
             if ( move_uploaded_file( $_FILES['report_file']['tmp_name'], $dest ) ) {
