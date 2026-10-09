@@ -126,8 +126,8 @@ class SEO_OVERSIGHT_Payments {
 
         if ( ! file_exists( $seo_upload_path ) ) {
             wp_mkdir_p( $seo_upload_path );
-            // Put .htaccess to prevent direct execution
-            file_put_contents( $seo_upload_path . '/.htaccess', "Options -Indexes\n<Files *>\n  SetHandler default-handler\n</Files>" );
+            file_put_contents( $seo_upload_path . '/.htaccess', "Options -Indexes\n<IfModule mod_authz_core.c>\n  Require all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n  Deny from all\n</IfModule>" );
+            file_put_contents( $seo_upload_path . '/index.php', '<?php // Silence is golden' );
         }
 
         $safe_filename = 'receipt_' . date('Ymd_His') . '_' . wp_generate_password(8, false, false) . '.' . $ext;

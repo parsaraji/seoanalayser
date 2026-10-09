@@ -194,6 +194,160 @@ class SEO_OVERSIGHT_DB {
         update_option( 'seo_oversight_db_version', self::DB_VERSION );
 
         self::insert_default_plans();
+        self::create_default_pages();
+    }
+
+    public static function create_default_pages() {
+        // Parent Services Page
+        $services_parent_id = 0;
+        $existing_services = get_page_by_path( 'services' );
+        if ( ! $existing_services ) {
+            $services_parent_id = wp_insert_post( array(
+                'post_title'   => 'خدمات نظارت سئو',
+                'post_name'    => 'services',
+                'post_status'  => 'publish',
+                'post_type'    => 'page',
+                'post_content' => 'پلتفرم نظارت مستقل سئو خدمات خود را در قالب ۶ محور تخصصی ارائه می‌دهد.'
+            ) );
+        } else {
+            $services_parent_id = $existing_services->ID;
+        }
+
+        $service_children = array(
+            'technical-seo-oversight' => array(
+                'title'   => 'نظارت بر سئوی فنی',
+                'content' => 'خدمات پایش و ارزیابی تخصصی سئوی فنی شامل تحلیل کدهای کانونیکال، ساختار داده‌ها (Schema)، بودجه خزش، نحوه نمایه شدن صفحات و برطرف‌سازی خطاهای سرچ کنسول.'
+            ),
+            'onpage-content-review' => array(
+                'title'   => 'بررسی سئوی داخلی و محتوا',
+                'content' => 'ارزیابی کیفیت محتوایی و ساختاری وب‌سایت، هم‌راستایی با قصد کاربران (Search Intent)، پایش لینک‌سازی داخلی و جلوگیری از هم‌نوع‌خواری کلمات کلیدی (Cannibalization).'
+            ),
+            'performance-monitoring' => array(
+                'title'   => 'تحلیل عملکرد ارگانیک',
+                'content' => 'پایش مستمر نوسانات ورودی ارگانیک، آنالیز نرخ تبدیل، تحلیل سهم بازار در عبارت‌های کلیدی و پایش شاخص‌های حیاتی وب (Core Web Vitals).'
+            ),
+            'offpage-review' => array(
+                'title'   => 'ارزیابی سئوی خارجی',
+                'content' => 'سنجش سلامت پروفایل بک‌لینک، پایش آنکورتکست‌ها، شناسایی لینک‌های اسپم و مخرب و ارزیابی ریسک‌های جریمه و افت توسط الگوریتم‌های گوگل.'
+            ),
+            'task-monitoring' => array(
+                'title'   => 'پیگیری وظایف و اصلاحات سئو',
+                'content' => 'ردیابی زمان‌بندی اجرای توصیه‌های ناظر توسط مجری سئو یا تیم توسعه، صحت‌سنجی نهایی کیفیت اصلاحات و اطمینان از رفع پایدار مشکلات.'
+            ),
+        );
+
+        foreach ( $service_children as $slug => $info ) {
+            $existing_child = get_page_by_path( 'services/' . $slug );
+            if ( ! $existing_child ) {
+                wp_insert_post( array(
+                    'post_title'   => $info['title'],
+                    'post_name'    => $slug,
+                    'post_parent'  => $services_parent_id,
+                    'post_status'  => 'publish',
+                    'post_type'    => 'page',
+                    'post_content' => $info['content'],
+                ) );
+            }
+        }
+
+        $pages = array(
+            'consultation' => array(
+                'title' => 'درخواست مشاوره',
+                'template' => 'page-consultation.php',
+            ),
+            'assessment' => array(
+                'title' => 'درخواست ارزیابی سئو',
+                'template' => 'page-assessment.php',
+            ),
+            'contract-request' => array(
+                'title' => 'درخواست قرارداد',
+                'template' => 'page-contract-request.php',
+            ),
+            'pricing' => array(
+                'title' => 'تعرفه‌ها و پلن‌ها',
+                'template' => 'page-pricing.php',
+            ),
+            'dashboard' => array(
+                'title' => 'داشبورد کاربری',
+                'template' => 'page-dashboard.php',
+            ),
+            'blog' => array(
+                'title' => 'وبلاگ تحلیلی',
+                'template' => 'page-blog.php',
+            ),
+            'services' => array(
+                'title' => 'خدمات نظارت سئو',
+                'template' => 'page.php',
+                'content' => 'پلتفرم نظارت مستقل سئو خدمات خود را در قالب ۶ محور تخصصی سئوی فنی، سئوی داخلی، تحلیل عملکرد ارگانیک، ارزیابی سئوی خارجی، پیگیری اصلاحات و گزارش‌های مدیریتی ارائه می‌دهد.'
+            ),
+            'about' => array(
+                'title' => 'درباره نظارت مستقل سئو',
+                'template' => 'page.php',
+                'content' => 'ما به عنوان مشاور و ناظر بی‌پرفورمنس و مستقل، بر کیفیت عملکرد مجریان و آژانس‌های سئو نظارت می‌کنیم تا سرمایه‌گذاری کسب‌وکارها کاملاً شفاف و اثرگذار باشد.'
+            ),
+            'how-it-works' => array(
+                'title' => 'چگونگی عملکرد پایش سئو',
+                'template' => 'page.php',
+                'content' => 'فرآیند پایش در ۴ مرحله شامل مشاوره و اعطای دسترسی سطح Viewer، ارزیابی وضعیت مبنا (Baseline)، پیگیری هفتگی وظایف و تحویل گزارش‌های ماهانه صورت می‌پذیرد.'
+            ),
+            'contact' => array(
+                'title' => 'تماس باما',
+                'template' => 'page.php',
+                'content' => 'جهت برقراری ارتباط با کارشناسان ناظر می‌توانید با شماره ۰۲۱-۸۸۰۰۰۰۰۰ تماس گرفته یا فرم مشاوره را تکمیل نمایید.'
+            ),
+            'privacy-policy' => array(
+                'title' => 'حریم خصوصی و حفاظت از داده‌ها',
+                'template' => 'page.php',
+                'content' => 'تمام اسناد، داده‌های سرچ کنسول، گزارش‌ها و اطلاعات مالی مشتریان نزد پلتفرم نظارت مستقل سئو کاملاً محرمانه تلقی می‌گردد.'
+            ),
+            'terms' => array(
+                'title' => 'شرایط عمومی خدمات',
+                'template' => 'page.php',
+                'content' => 'ارائه خدمات نظارتی منوط به ثبت درخواست، پذیرش الکترونیکی قرارداد و تایید فیش واریز وجه ماهانه می‌باشد.'
+            ),
+            'contract-terms' => array(
+                'title' => 'نمونه مفاد حقوقی قرارداد',
+                'template' => 'page.php',
+                'content' => 'این صفحه شامل پیش‌نمایش مواد ۱ تا ۱۶ قرارداد ارائه خدمات نظارت مستقل سئو می‌باشد.'
+            ),
+            'payment-instructions' => array(
+                'title' => 'راهنمای واریز کارت به کارت',
+                'template' => 'page.php',
+                'content' => 'پرداخت هزینه‌های نظارت صرفاً از طریق واریز کارت به کارت به شماره کارت اعلام‌شده در داشبورد و ثبت فیش واریزی انجام می‌شود.'
+            ),
+            'faq' => array(
+                'title' => 'پرسش‌های متداول',
+                'template' => 'page.php',
+                'content' => 'پاسخ به کلیه پرسش‌های کلیدی درباره نحوه نظارت، عدم دخالت مستقیم در کدنویسی، حفظ محرمانگی و نحوه پرداخت.'
+            ),
+        );
+
+        foreach ( $pages as $slug => $page_info ) {
+            $existing = get_page_by_path( $slug );
+            if ( ! $existing ) {
+                $page_id = wp_insert_post( array(
+                    'post_title'     => $page_info['title'],
+                    'post_name'      => $slug,
+                    'post_status'    => 'publish',
+                    'post_type'      => 'page',
+                    'post_content'   => isset( $page_info['content'] ) ? $page_info['content'] : '',
+                ) );
+
+                if ( $page_id && ! is_wp_error( $page_id ) && ! empty( $page_info['template'] ) ) {
+                    update_post_meta( $page_id, '_wp_page_template', $page_info['template'] );
+                    if ( $slug === 'dashboard' ) {
+                        update_option( 'seo_oversight_dashboard_page_id', $page_id );
+                    }
+                }
+            } else {
+                if ( ! empty( $page_info['template'] ) ) {
+                    update_post_meta( $existing->ID, '_wp_page_template', $page_info['template'] );
+                }
+                if ( $slug === 'dashboard' ) {
+                    update_option( 'seo_oversight_dashboard_page_id', $existing->ID );
+                }
+            }
+        }
     }
 
     public static function check_version() {

@@ -437,14 +437,43 @@ class SEO_OVERSIGHT_Admin {
 
         global $wpdb;
         $table = $wpdb->prefix . 'seo_contracts';
-        $wpdb->update(
-            $table,
-            array(
-                'status' => $status,
-                'monthly_fee_toman' => $fee
-            ),
-            array( 'id' => $contract_id )
-        );
+        $existing = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE id = %d", $contract_id ) );
+
+        if ( $existing ) {
+            if ( $existing->monthly_fee_toman != $fee && $fee > 0 ) {
+                $plan = SEO_OVERSIGHT_Service_Plans::get_plan( $existing->plan_id );
+                if ( ! $plan ) {
+                    $plan = new stdClass();
+                    $plan->name = 'سفارشی';
+                    $plan->monthly_price_toman = $fee;
+                    $plan->billing_interval = 'monthly';
+                    $plan->included_features = 'خدمات اختصاصی نظارت سئو';
+                    $plan->excluded_features = 'اجرای مستقیم کدنویسی';
+                    $plan->contract_terms_addendum = '';
+                } else {
+                    $plan->monthly_price_toman = $fee;
+                }
+
+                SEO_OVERSIGHT_Contracts::create_contract_version( $contract_id, get_current_user_id(), $plan, array(
+                    'client_name' => $existing->client_name,
+                    'client_company' => $existing->client_company,
+                    'client_national_id' => $existing->client_national_id,
+                    'client_address' => $existing->client_address,
+                    'client_mobile' => $existing->client_mobile,
+                    'client_email' => $existing->client_email,
+                    'website_url' => $existing->website_url,
+                ) );
+            }
+
+            $wpdb->update(
+                $table,
+                array(
+                    'status' => $status,
+                    'monthly_fee_toman' => $fee
+                ),
+                array( 'id' => $contract_id )
+            );
+        }
 
         wp_safe_redirect( admin_url( 'admin.php?page=seo-oversight-contracts' ) );
         exit;
@@ -614,7 +643,8 @@ class SEO_OVERSIGHT_Admin {
 
             if ( ! file_exists( $seo_rep_path ) ) {
                 wp_mkdir_p( $seo_rep_path );
-                file_put_contents( $seo_rep_path . '/.htaccess', "Options -Indexes\n<Files *>\n  SetHandler default-handler\n</Files>" );
+                file_put_contents( $seo_rep_path . '/.htaccess', "Options -Indexes\n<IfModule mod_authz_core.c>\n  Require all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n  Deny from all\n</IfModule>" );
+                file_put_contents( $seo_rep_path . '/index.php', '<?php // Silence is golden' );
             }
 
             $filename = 'report_' . date('Ymd_His') . '_' . wp_generate_password(8, false, false) . '.pdf';

@@ -33,8 +33,11 @@ require_once SEO_OVERSIGHT_CORE_PATH . 'includes/class-privacy.php';
 require_once SEO_OVERSIGHT_CORE_PATH . 'includes/class-dashboard.php';
 require_once SEO_OVERSIGHT_CORE_PATH . 'includes/class-admin.php';
 
-register_activation_hook( __FILE__, array( 'SEO_OVERSIGHT_DB', 'init_db' ) );
-register_activation_hook( __FILE__, array( 'SEO_OVERSIGHT_Roles', 'init_roles' ) );
+register_activation_hook( __FILE__, function() {
+    SEO_OVERSIGHT_DB::init_db();
+    SEO_OVERSIGHT_Roles::init_roles();
+    flush_rewrite_rules();
+} );
 
 add_action( 'plugins_loaded', array( 'SEO_OVERSIGHT_Core', 'init' ) );
 

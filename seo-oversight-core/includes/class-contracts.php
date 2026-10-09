@@ -52,7 +52,8 @@ class SEO_OVERSIGHT_Contracts {
         if ( ! $user_id && ! empty( $client_email ) ) {
             $existing_user = get_user_by( 'email', $client_email );
             if ( $existing_user ) {
-                $user_id = $existing_user->ID;
+                // Keep user_id = 0 for guest submissions with an existing email to prevent unauthenticated account spoofing.
+                $user_id = 0;
             } else {
                 $username = 'client_' . sanitize_title( $client_mobile );
                 if ( username_exists( $username ) ) {
