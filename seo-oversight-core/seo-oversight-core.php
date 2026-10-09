@@ -29,6 +29,7 @@ require_once SEO_OVERSIGHT_CORE_PATH . 'includes/class-payments.php';
 require_once SEO_OVERSIGHT_CORE_PATH . 'includes/class-reports.php';
 require_once SEO_OVERSIGHT_CORE_PATH . 'includes/class-notifications.php';
 require_once SEO_OVERSIGHT_CORE_PATH . 'includes/class-security.php';
+require_once SEO_OVERSIGHT_CORE_PATH . 'includes/class-privacy.php';
 require_once SEO_OVERSIGHT_CORE_PATH . 'includes/class-dashboard.php';
 require_once SEO_OVERSIGHT_CORE_PATH . 'includes/class-admin.php';
 

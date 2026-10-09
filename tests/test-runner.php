@@ -59,6 +59,12 @@ function wp_mail( $to, $subject, $message ) { return true; }
 function current_time( $type ) { return date( 'Y-m-d H:i:s' ); }
 function wp_parse_args( $args, $defaults ) { return array_merge( $defaults, (array) $args ); }
 function wp_json_encode( $data, $options = 0 ) { return json_encode( $data, $options ); }
+function get_user_by( $field, $value ) {
+    $u = new stdClass();
+    $u->ID = 10;
+    $u->user_email = 'user@example.com';
+    return $u;
+}
 
 class MockWPDB {
     public $prefix = 'wp_';
@@ -88,6 +94,7 @@ require_once dirname( __DIR__ ) . '/seo-oversight-core/includes/class-security.p
 require_once dirname( __DIR__ ) . '/seo-oversight-core/includes/class-service-plans.php';
 require_once dirname( __DIR__ ) . '/seo-oversight-core/includes/class-contracts.php';
 require_once dirname( __DIR__ ) . '/seo-oversight-core/includes/class-payments.php';
+require_once dirname( __DIR__ ) . '/seo-oversight-core/includes/class-privacy.php';
 
 echo "Running Standalone Suite Tests...\n";
 
@@ -115,5 +122,12 @@ assert( strpos( $text, 'ماده ۱۶ — پذیرش و نسخه قرارداد'
 // Test 3: Payment settings parse
 $p_settings = SEO_OVERSIGHT_Payments::get_payment_settings();
 assert( isset( $p_settings['card_number'] ), "Payment settings should contain card_number" );
+
+// Test 4: Privacy data exporter & eraser
+$export = SEO_OVERSIGHT_Privacy::customer_data_exporter( 'user@example.com' );
+assert( isset( $export['done'] ) && $export['done'] === true, "Privacy exporter should return done" );
+
+$erase = SEO_OVERSIGHT_Privacy::customer_data_eraser( 'user@example.com' );
+assert( isset( $erase['items_removed'] ) && $erase['items_removed'] === true, "Privacy eraser should return items_removed" );
 
 echo "ALL TESTS PASSED SUCCESSFULLY!\n";
