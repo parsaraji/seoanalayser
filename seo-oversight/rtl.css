@@ -1,0 +1,35 @@
+/* RTL Specific Overrides and Logical CSS Properties */
+body {
+  direction: rtl;
+  text-align: right;
+}
+
+.main-navigation ul {
+  padding-inline-start: 0;
+}
+
+.seo-card {
+  border-inline-start: 4px solid var(--secondary-blue);
+}
+
+.seo-contract-document {
+  font-family: var(--font-family-base);
+  color: var(--main-text);
+  line-height: 2;
+}
+
+.seo-contract-document h2,
+.seo-contract-document h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.seo-contract-document p {
+  text-align: justify;
+  margin-bottom: 1rem;
+}
+
+.seo-contract-document ul {
+  margin-inline-start: 2rem;
+  margin-bottom: 1rem;
+}
